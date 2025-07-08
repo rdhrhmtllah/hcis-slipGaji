@@ -84,5 +84,4 @@ COPY docker/laravel-vhost.conf /etc/apache2/sites-available/laravel.conf
 RUN a2ensite laravel.conf
 
 
-# Biarkan CMD default dari base image php:apache yang akan berjalan
 EXPOSE 8080
