@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install node dependencies
-RUN npm ci
+RUN npm install
 
 # Salin SEMUA file proyek. Ini memastikan semua file konfigurasi (vite, postcss, tailwind)
 # dan source code (resources/js) tersedia untuk proses build.
