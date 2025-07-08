@@ -70,9 +70,23 @@ RUN cp .env.example .env \
 # Salin konfigurasi PHP kustom
 COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
 
-# Arahkan DocumentRoot Apache ke folder public Laravel dan aktifkan rewrite
-RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf \
-    && a2enmod rewrite
+# --- BAGIAN PERUBAHAN UTAMA DI SINI ---
+
+# Aktifkan mod_rewrite Apache
+RUN a2enmod rewrite
+
+# Nonaktifkan default site (jika ada) dan file ports.conf default Apache
+# Ini untuk menghindari konflik dengan konfigurasi kustom kita
+RUN a2dissite 000-default.conf || true \
+    && a2disconf ports || true
+
+# Salin file konfigurasi VirtualHost Laravel kustom
+COPY docker/laravel-vhost.conf /etc/apache2/sites-available/laravel.conf
+
+# Aktifkan situs Laravel yang baru
+RUN a2ensite laravel.conf
+
+# --- AKHIR BAGIAN PERUBAHAN ---
 
 # Biarkan CMD default dari base image php:apache yang akan berjalan
 EXPOSE 8080
