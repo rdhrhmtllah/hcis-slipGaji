@@ -31,17 +31,19 @@ Route::get('/', function () {
 Route::post('/post-password', [TokenController::class, 'postPassword'])->name('password.update');
 
 Route::get('/set/{token}', [TokenController::class, 'accessPasswordForm'])->name('access.token');
+Route::get('/newUrl', [TokenController::class, 'newUrl'])->name('access.newUrl');
 
+Route::get('/test', [TokenController::class, 'HashPass'])->name('access.token');
 
 Route::get('/test-db', function () {
-try {
-    DB::connection()->getPdo();
+    try {
+        DB::connection()->getPdo();
 
-    return '<h1 style="color:green;">✅ SUKSES! Koneksi ke database berjalan dengan baik.</h1>';
+        return '<h1 style="color:green;">✅ SUKSES! Koneksi ke database berjalan dengan baik.</h1>';
 
-} catch (\Exception $e) {
-    return '<h1 style="color:red;">❌ GAGAL! Tidak bisa terhubung ke database.</h1><p>Error: ' . $e->getMessage() . '</p>';
-}
+    } catch (\Exception $e) {
+        return '<h1 style="color:red;">❌ GAGAL! Tidak bisa terhubung ke database.</h1><p>Error: ' . $e->getMessage() . '</p>';
+    }
 });
 
 

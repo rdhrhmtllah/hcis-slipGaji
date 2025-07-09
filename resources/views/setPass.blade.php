@@ -125,6 +125,7 @@
         .btn-outline-primary:focus {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
+            color: var(--surface);
         }
 
         .btn-primary {
@@ -356,7 +357,10 @@
                                    class="form-control @error('password') is-invalid @enderror"
                                    name="password"
                                    required
+                                   autofocus
+                                   placeholder="Masukan Password"
                                    autocomplete="new-password">
+
                             <button class="btn btn-outline-primary"
                                     type="button"
                                     id="togglePassword">
@@ -366,13 +370,14 @@
                         <div class="password-strength mt-2">
                             <div class="strength-meter" id="strengthMeter"></div>
                         </div>
-                        <div class="form-text text-muted">Use 8 or more characters with a mix of letters, numbers & symbols</div>
                         @error('password')
                             <div class="text-danger mt-1">
                                 <i class="bi bi-exclamation-circle me-1"></i>
                                 {{ $message }}
                             </div>
                         @enderror
+                        <div class="form-text text-muted " style="text-align: justify" >Password harus mengandung huruf, angka, simbol, minimum 8 dan maximal 15 karakter</div>
+
                     </div>
 
                     <!-- Confirm Password -->
@@ -385,6 +390,7 @@
                                    type="password"
                                    class="form-control"
                                    name="password_confirmation"
+                                   placeholder="Konfirmasi password sebelumnya"
                                    required
                                    autocomplete="new-password">
                             <button class="btn btn-outline-primary"
@@ -485,7 +491,7 @@
             const matchText = document.getElementById('passwordMatch');
 
             if(password !== confirmPassword) {
-                matchText.innerHTML = '<i class="bi bi-x-circle text-danger me-1"></i>Passwords do not match';
+                matchText.innerHTML = '<i class="bi bi-x-circle text-danger me-1"></i>Password tidak sama';
                 matchText.classList.remove('text-success');
                 matchText.classList.add('text-danger');
             } else if(password.length > 0) {
