@@ -33,7 +33,6 @@ Route::post('/post-password', [TokenController::class, 'postPassword'])->name('p
 Route::get('/set/{token}', [TokenController::class, 'accessPasswordForm'])->name('access.token');
 Route::get('/newUrl', [TokenController::class, 'newUrl'])->name('access.newUrl');
 
-Route::get('/test', [TokenController::class, 'HashPass'])->name('access.token');
 
 Route::get('/test-db', function () {
     try {
@@ -47,16 +46,17 @@ Route::get('/test-db', function () {
 });
 
 
+// Route::get('/test', [TokenController::class, 'HashPass'])->name('access.token');
 
 
-// routes/web.php
-Route::get('/debug-password-reset', function() {
-    // Simulasikan session yang diperlukan
-    session(['temp_nohp' => '6285269805413', 'temp_nik' => '1111111111111111']);
-    return view('setPass', [
-        'datanik' => '1111111111111111',
-        'message' => 'Debug Mode'
-    ]);
-});
+// // routes/web.php
+// Route::get('/debug-password-reset', function() {
+//     // Simulasikan session yang diperlukan
+//     session(['temp_nohp' => '6285269805413', 'temp_nik' => '1111111111111111']);
+//     return view('setPass', [
+//         'datanik' => '1111111111111111',
+//         'message' => 'Debug Mode'
+//     ]);
+// });
 
-Route::post('/debug-submit-password', [TokenController::class, 'postPassword']);
+// Route::post('/debug-submit-password', [TokenController::class, 'postPassword']);
