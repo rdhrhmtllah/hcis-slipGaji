@@ -72,6 +72,13 @@ return [
             'days' => 14,
             'replace_placeholders' => true,
         ],
+        'whatsapp_error' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/whatsapp_error.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
 
         'slack' => [
             'driver' => 'slack',
