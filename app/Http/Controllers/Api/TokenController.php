@@ -218,12 +218,13 @@ class TokenController extends Controller
 
             $noHp = session('temp_nohp');
             $NIK = session('temp_nik');
+            $namaUser = DB::table('N_HRIS_USER')->where('No_HP', $noHp)->first();
 
 
             if (empty($noHp) || empty($NIK)) {
                 Log::warning('Session invalid', ['nohp' => $noHp, 'nik' => $NIK]);
                 DB::rollBack();
-                return view('error')->with('error', 'Sesi tidak valid');
+                return view('error', ['message' => 'Sesi tidak valid'])->with('error', 'Sesi tidak valid');
             }
 
             $unHashPass = env('SALT_FRONT') . $request->password . env('SALT_BACK');
@@ -240,8 +241,7 @@ class TokenController extends Controller
 
             $HashCustom = new HashController();
             $rawPass = $HashCustom->hashController($request)->getData();
-
-            $finalPassword =  $rawPas->encrypt;
+            $finalPassword =  $rawPass->encrypt;
 
             // Hash::make(env('SALT_FRONT') . $request->password . env('SALT_BACK'));
 
@@ -257,8 +257,9 @@ class TokenController extends Controller
             if ($updatedRows === 0) {
                 Log::error('Update gagal', ['nik' => $NIK, 'nohp' => $noHp]);
                 DB::rollBack();
-                return view('error')->with('error', 'Update password gagal');
+                return view('error',  ['message' =>  'Update password gagal, User tidak ditemukan'])->with('error', 'Update password gagal');
             }
+
 
 
             $pesan = [
@@ -266,7 +267,7 @@ class TokenController extends Controller
                 "to" => $noHp,
                 "type" => "template",
                 "template" => [
-                    "name" => "set_slip_gj_baru",
+                    "name" => "berhasil_set_slip_gj",
                     "language" => [
                         "code" => "id",
                         "policy" => "deterministic"
@@ -277,25 +278,15 @@ class TokenController extends Controller
                             "parameters" => [
                                 [
                                     "type" => "text",
-                                    "text" => "Anda Berhasil Menyimpan Password"
+                                    "text" => $namaUser->Nama
                                 ],
                                 [
                                     "type" => "text",
                                     "text" => "Password"
                                 ]
                             ]
-                        ],
-                        [
-                            "type" => "button",
-                            "sub_type" => "url",
-                            "index" => 0,
-                            "parameters" => [
-                                [
-                                    "type" => "text",
-                                    "text" => "/set/Rill"
-                                ]
-                            ]
                         ]
+
                     ]
                 ]
             ];
@@ -319,7 +310,7 @@ class TokenController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             DB::rollBack();
-            return view('error')->with('error', 'Error sistem');
+            return view('error', ['message' => 'Error post password: ' . $e->getMessage()])->with('error', 'Error sistem');
         }
     }
 

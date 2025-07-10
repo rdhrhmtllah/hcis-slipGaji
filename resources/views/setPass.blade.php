@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password - HCIS EVO</title>
+    <title>Set Password - HCIS EVO</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -405,7 +405,7 @@
                     <!-- Submit Button -->
                     <div class="d-grid mb-3">
                         <button type="submit" class="btn-modern btn-primary btn-lg justify-content-center">
-                            <i class="bi bi-key me-2"></i>Reset Password
+                            <i class="bi bi-key me-2"></i>Simpan
                         </button>
                     </div>
 
