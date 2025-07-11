@@ -23,10 +23,10 @@ class HashController extends Controller
         $password = $request->input("password");
         // dd($type);
         if ($type == "enkripsi") {
-            $encrypted = $this->encryptForVB($password, "hashingPW512%@@");
+            $encrypted = $this->encryptForVB($password, env('PASS_HASHCUSTOM'));
         } else if ($type == "deskripsi") {
             // dd("oke");
-            $encrypted = $this->decryptFromVB($password, "hashingPW512%@@"); //di env
+            $encrypted = $this->decryptFromVB($password, env('PASS_HASHCUSTOM')); //di env
         } else {
             return response()->json([
                 'pesan' => 'something went wrong'
