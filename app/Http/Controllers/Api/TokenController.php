@@ -90,6 +90,7 @@ class TokenController extends Controller
             $jti = $payload['jti'];
             $datanik = $payload['sub']; // Gunakan 'sub' yang berisi NIK
             $nohp = $payload['nohp'];
+            $exp =$payload['exp'];
 
             $purpose = $payload['purpose'] ?? null;
             if ($purpose !== 'whatsapp_access') {
@@ -98,12 +99,15 @@ class TokenController extends Controller
             }
 
 
-            if (TokenUsage::whereNotNull('used_at')->exists()) {
+            $tokenUsed = TokenUsage::whereNotNull('used_at')->exists();
+
+            if ($tokenUsed) {
                 DB::rollBack();
+
                 return view('error', ['message' => 'Link ini sudah pernah digunakan atau kedaluwarsa.']);
             }
 
-
+            // dd($tokenUsed);
             $userExists = N_HRIS_USER::where('NIK', $datanik)
                             ->where('No_HP', $nohp)
                             ->exists();
@@ -112,22 +116,22 @@ class TokenController extends Controller
                 return view('error', ['message' => 'Data pengguna tidak ditemukan.']);
             }
 
-            TokenUsage::create([
-                'jti' => $jti,
-                'expires_at' => Carbon::createFromTimestamp($payload['exp']),
-            ]);
-            DB::table('N_HRIS_User_Session')->where('No_HP', $nohp)
+            if(!DB::table('N_HRIS_User_Session')->whereNotNull('Tanggal')->whereNotNull('Jam')->exists()){
+                DB::table('N_HRIS_User_Session')->where('No_HP', $nohp)
                     ->update([
-                        'Tanggal' => Carbon::now(),
-                        'Jam' => Carbon::now()->format('H:i:s')
+                        'Tanggal' => Carbon::createFromTimestamp($payload['exp'])->format('Y-m-d H:i:s'),
+                        'Jam' => Carbon::createFromTimestamp($payload['exp'])->format('H:i:s')
                     ]);
+            }
+
 
             DB::commit();
 
             session([
                 'temp_nohp' => $nohp,
                 'temp_nik' => $datanik,
-                'jti' => $jti
+                'jti' => $jti,
+                'exp' => $exp
             ]);
 
             return view('setPass', [
@@ -157,7 +161,7 @@ class TokenController extends Controller
                 'error_line' => $e->getLine(),
                 'stack_trace' => $e->getTraceAsString()
             ]);
-            return view('error', ['message' => 'Terjadi kesalahan sistem. Silakan coba lagi.']);
+            return view('error', ['message' => 'Terjadi kesalahan sistem. Silakan coba lagi.'.$e->getMessage()]);
         }
     }
 
@@ -252,6 +256,7 @@ class TokenController extends Controller
             $noHp = session('temp_nohp');
             $NIK = session('temp_nik');
             $jtiNow = session('jti');
+            $expToken = session('exp');
             $namaUser = DB::table('N_HRIS_USER')->where('No_HP', $noHp)->first();
 
 
@@ -279,7 +284,9 @@ class TokenController extends Controller
 
             // Hash::make(env('SALT_FRONT') . $request->password . env('SALT_BACK'));
 
-            TokenUsage::where('jti', $jtiNow)->update([
+            TokenUsage::create([
+                'jti' => $jtiNow,
+                'expires_at' => Carbon::createFromTimestamp($expToken),
                 'used_at' => Carbon::now(),
             ]);
 
