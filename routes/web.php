@@ -46,7 +46,7 @@ Route::get('/test-db', function () {
 });
 
 
-// Route::get('/test', [TokenController::class, 'HashPass'])->name('access.token');
+Route::get('/test', [TokenController::class, 'HashPass'])->name('access.token2');
 
 
 // // routes/web.php

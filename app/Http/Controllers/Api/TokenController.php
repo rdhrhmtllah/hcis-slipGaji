@@ -98,10 +98,10 @@ class TokenController extends Controller
             }
 
 
-            // if (TokenUsage::where('jti', $jti)->exists()) {
-            //     DB::rollBack();
-            //     return view('error', ['message' => 'Link ini sudah pernah digunakan atau kedaluwarsa.']);
-            // }
+            if (TokenUsage::whereNotNull('used_at')->exists()) {
+                DB::rollBack();
+                return view('error', ['message' => 'Link ini sudah pernah digunakan atau kedaluwarsa.']);
+            }
 
 
             $userExists = N_HRIS_USER::where('NIK', $datanik)
@@ -112,16 +112,22 @@ class TokenController extends Controller
                 return view('error', ['message' => 'Data pengguna tidak ditemukan.']);
             }
 
-            // TokenUsage::create([
-            //     'jti' => $jti,
-            //     'expires_at' => Carbon::createFromTimestamp($payload['exp']),
-            //     'used_at' => Carbon::now(),
-            // ]);
+            TokenUsage::create([
+                'jti' => $jti,
+                'expires_at' => Carbon::createFromTimestamp($payload['exp']),
+            ]);
+            DB::table('N_HRIS_User_Session')->where('No_HP', $nohp)
+                    ->update([
+                        'Tanggal' => Carbon::now(),
+                        'Jam' => Carbon::now()->format('H:i:s')
+                    ]);
+
             DB::commit();
 
             session([
                 'temp_nohp' => $nohp,
                 'temp_nik' => $datanik,
+                'jti' => $jti
             ]);
 
             return view('setPass', [
@@ -164,6 +170,33 @@ class TokenController extends Controller
     {
         $passUnreal = 'kluklu';
         $unHashPass = env('SALT_FRONT') . $passUnreal . env('SALT_BACK');
+
+
+
+        $HashCustom = new HashController();
+
+        $dataAll = DB::table('N_HRIS_USER')
+            ->whereNotNull('Password')
+            ->get()
+            ->map(function ($item) use ($HashCustom) {
+             if (isset($item->Password)) {
+                $request = new Request([
+                    'type' => 'deskripsi',
+                    'password' => $item->Password,
+                    'my_code' => 'secretAPI%'
+                ]);
+
+                $raw = $HashCustom->hashController($request)->getData()->encrypt;
+
+                $item->Password = preg_replace('/^1RerT@|3E2w\^$/', '',$raw);
+            }
+            return $item;
+        });
+
+        dd($dataAll);
+
+
+
 
         $HashCustom = new HashController();
 
@@ -218,6 +251,7 @@ class TokenController extends Controller
 
             $noHp = session('temp_nohp');
             $NIK = session('temp_nik');
+            $jtiNow = session('jti');
             $namaUser = DB::table('N_HRIS_USER')->where('No_HP', $noHp)->first();
 
 
@@ -245,13 +279,23 @@ class TokenController extends Controller
 
             // Hash::make(env('SALT_FRONT') . $request->password . env('SALT_BACK'));
 
+            TokenUsage::where('jti', $jtiNow)->update([
+                'used_at' => Carbon::now(),
+            ]);
+
+
+
             $query = N_HRIS_USER::where('NIK', $NIK)
                     ->where('No_HP', $noHp)
                     ->toSql();
 
             $updatedRows = N_HRIS_USER::where('NIK', $NIK)
                             ->where('No_HP', $noHp)
-                            ->update(['Password' => $finalPassword]);
+                            ->update([
+                                'Password' => $finalPassword,
+                                'Tanggal' => Carbon::now(),
+                                'Jam' => Carbon::now()->format('H:i:s')
+                            ]);
 
 
             if ($updatedRows === 0) {
