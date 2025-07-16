@@ -53,6 +53,18 @@ class TokenController extends Controller
 
         $token = JWTAuth::claims($customClaims)->fromUser($user);
 
+
+        if(DB::table('N_HRIS_User_Session')->where('No_HP', $request->nohp)->exists()){
+
+            DB::table('N_HRIS_User_Session')->where('No_HP', $request->nohp)
+                ->update([
+                    'Tanggal' => Carbon::now()->addHours(1)->format('Y-m-d H:i:s'),
+                    'Jam' => Carbon::now()->addHours(1)->format('H:i:s')
+            ]);
+
+        }
+
+
         return response()->json([
             'status' => 'success',
             'token' => $token,
@@ -66,7 +78,7 @@ class TokenController extends Controller
             ]);
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal membuat token: ' . $e->getMessage()
+                'message' => 'Gagal membuat token: Hubungi Admin kesalahan generate token!'
             ], 500);
         }
     }
@@ -99,7 +111,7 @@ class TokenController extends Controller
             }
 
 
-            $tokenUsed = TokenUsage::whereNotNull('used_at')->exists();
+            $tokenUsed = TokenUsage::where('jti', $jti)->whereNotNull('used_at')->exists();
 
             if ($tokenUsed) {
                 DB::rollBack();
@@ -116,13 +128,13 @@ class TokenController extends Controller
                 return view('error', ['message' => 'Data pengguna tidak ditemukan.']);
             }
 
-            if(!DB::table('N_HRIS_User_Session')->whereNotNull('Tanggal')->whereNotNull('Jam')->exists()){
-                DB::table('N_HRIS_User_Session')->where('No_HP', $nohp)
-                    ->update([
-                        'Tanggal' => Carbon::createFromTimestamp($payload['exp'])->format('Y-m-d H:i:s'),
-                        'Jam' => Carbon::createFromTimestamp($payload['exp'])->format('H:i:s')
-                    ]);
-            }
+            // if(!DB::table('N_HRIS_User_Session')->where('No_HP', $nohp)->whereNotNull('Tanggal')->whereNotNull('Jam')->exists()){
+            //     DB::table('N_HRIS_User_Session')->where('No_HP', $nohp)
+            //         ->update([
+            //             'Tanggal' => Carbon::createFromTimestamp($payload['exp'])->format('Y-m-d H:i:s'),
+            //             'Jam' => Carbon::createFromTimestamp($payload['exp'])->format('H:i:s')
+            //         ]);
+            // }
 
 
             DB::commit();
@@ -144,7 +156,7 @@ class TokenController extends Controller
             Log::error('Token invalid: ' . $e->getMessage(), [
                 'payload' => $payload->toArray()
             ]);
-            return view('error', ['message' => 'Token tidak valid: ' . $e->getMessage()]);
+            return view('error', ['message' => 'Token tidak valid: Silahkan Hubungi Admin dengan error Token invalid']);
         }catch (JWTException $e) {
             DB::rollBack();
             Log::error('JWT Error pada akses form password: ' . $e->getMessage(), [
@@ -161,7 +173,7 @@ class TokenController extends Controller
                 'error_line' => $e->getLine(),
                 'stack_trace' => $e->getTraceAsString()
             ]);
-            return view('error', ['message' => 'Terjadi kesalahan sistem. Silakan coba lagi.'.$e->getMessage()]);
+            return view('error', ['message' => 'Terjadi kesalahan sistem. Silakan coba lagi.']);
         }
     }
 
@@ -172,53 +184,54 @@ class TokenController extends Controller
 
     public function HashPass(Request $request)
     {
-        // $passUnreal = 'kluklu';
-        // $unHashPass = env('SALT_FRONT') . $passUnreal . env('SALT_BACK');
+        $passUnreal = 'kluklu';
+        $unHashPass = env('SALT_FRONT') . $passUnreal . env('SALT_BACK');
 
 
-
-        // $HashCustom = new HashController();
-
-        // $dataAll = DB::table('N_HRIS_USER')
-        //     ->whereNotNull('Password')
-        //     ->get()
-        //     ->map(function ($item) use ($HashCustom) {
-        //      if (isset($item->Password)) {
-        //         $request = new Request([
-        //             'type' => 'deskripsi',
-        //             'password' => $item->Password,
-        //             'my_code' => 'secretAPI%'
-        //         ]);
-
-        //         $raw = $HashCustom->hashController($request)->getData()->encrypt;
-
-        //         $item->Password = preg_replace('/^1RerT@|3E2w\^$/', '',$raw);
-        //     }
-        //     return $item;
-        // });
-
-
-
-
-
-        // $HashCustom = new HashController();
-
-        // $data = [
-        //     'type' => 'enkripsi',
-        //     'password' => $unHashPass,
-        //     'my_code' => 'secretAPI%',
-        // ];
-
-
-        // $request = new Request($data);
-
-        // $rawPass = $HashCustom->hashController($request)->getData();
-
-        $finalPassword = 'evo12345';
 
         $HashCustom = new HashController();
-        $data2 = [
+
+        $dataAll = DB::table('N_HRIS_USER')
+            ->whereNotNull('Password')
+            ->get()
+            ->map(function ($item) use ($HashCustom) {
+             if (isset($item->Password)) {
+                $request = new Request([
+                    'type' => 'deskripsi',
+                    'password' => $item->Password,
+                    'my_code' => 'secretAPI%'
+                ]);
+
+                $raw = $HashCustom->hashController($request)->getData()->encrypt;
+
+                $item->Password = preg_replace('/^1RerT@|3E2w\^$/', '',$raw);
+            }
+            return $item;
+        });
+
+        dd($dataAll);
+
+
+
+
+        $HashCustom = new HashController();
+
+        $data = [
             'type' => 'enkripsi',
+            'password' => $unHashPass,
+            'my_code' => 'secretAPI%',
+        ];
+
+
+        $request = new Request($data);
+
+        $HashCustom = new HashController();
+        $rawPass = $HashCustom->hashController($request)->getData();
+
+        $finalPassword = $rawPass->encrypt;
+
+        $data2 = [
+            'type' => 'deskripsi',
             'password' => $finalPassword,
             'my_code' => 'secretAPI%',
         ];
@@ -226,8 +239,6 @@ class TokenController extends Controller
 
         $rawPass2 = $HashCustom->hashController($request2)->getData();
         $finalUnreal = $rawPass2->encrypt;
-        dd($finalUnreal);
-
 
         // dd($finalUnreal);
         // dd('Pasword yang dienkrip : '.$finalPassword.' ; Ini Password tidak enkrip : '. $finalUnreal);
@@ -283,13 +294,6 @@ class TokenController extends Controller
             $rawPass = $HashCustom->hashController($request)->getData();
             $finalPassword =  $rawPass->encrypt;
 
-            // Hash::make(env('SALT_FRONT') . $request->password . env('SALT_BACK'));
-
-            TokenUsage::create([
-                'jti' => $jtiNow,
-                'expires_at' => Carbon::createFromTimestamp($expToken),
-                'used_at' => Carbon::now(),
-            ]);
 
 
 
@@ -312,6 +316,11 @@ class TokenController extends Controller
                 return view('error',  ['message' =>  'Update password gagal, User tidak ditemukan'])->with('error', 'Update password gagal');
             }
 
+            TokenUsage::create([
+                'jti' => $jtiNow,
+                'expires_at' => Carbon::createFromTimestamp($expToken),
+                'used_at' => Carbon::now(),
+            ]);
 
 
             $pesan = [
