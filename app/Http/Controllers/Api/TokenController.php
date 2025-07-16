@@ -172,54 +172,53 @@ class TokenController extends Controller
 
     public function HashPass(Request $request)
     {
-        $passUnreal = 'kluklu';
-        $unHashPass = env('SALT_FRONT') . $passUnreal . env('SALT_BACK');
+        // $passUnreal = 'kluklu';
+        // $unHashPass = env('SALT_FRONT') . $passUnreal . env('SALT_BACK');
 
 
+
+        // $HashCustom = new HashController();
+
+        // $dataAll = DB::table('N_HRIS_USER')
+        //     ->whereNotNull('Password')
+        //     ->get()
+        //     ->map(function ($item) use ($HashCustom) {
+        //      if (isset($item->Password)) {
+        //         $request = new Request([
+        //             'type' => 'deskripsi',
+        //             'password' => $item->Password,
+        //             'my_code' => 'secretAPI%'
+        //         ]);
+
+        //         $raw = $HashCustom->hashController($request)->getData()->encrypt;
+
+        //         $item->Password = preg_replace('/^1RerT@|3E2w\^$/', '',$raw);
+        //     }
+        //     return $item;
+        // });
+
+
+
+
+
+        // $HashCustom = new HashController();
+
+        // $data = [
+        //     'type' => 'enkripsi',
+        //     'password' => $unHashPass,
+        //     'my_code' => 'secretAPI%',
+        // ];
+
+
+        // $request = new Request($data);
+
+        // $rawPass = $HashCustom->hashController($request)->getData();
+
+        $finalPassword = 'evo12345';
 
         $HashCustom = new HashController();
-
-        $dataAll = DB::table('N_HRIS_USER')
-            ->whereNotNull('Password')
-            ->get()
-            ->map(function ($item) use ($HashCustom) {
-             if (isset($item->Password)) {
-                $request = new Request([
-                    'type' => 'deskripsi',
-                    'password' => $item->Password,
-                    'my_code' => 'secretAPI%'
-                ]);
-
-                $raw = $HashCustom->hashController($request)->getData()->encrypt;
-
-                $item->Password = preg_replace('/^1RerT@|3E2w\^$/', '',$raw);
-            }
-            return $item;
-        });
-
-        dd($dataAll);
-
-
-
-
-        $HashCustom = new HashController();
-
-        $data = [
-            'type' => 'enkripsi',
-            'password' => $unHashPass,
-            'my_code' => 'secretAPI%',
-        ];
-
-
-        $request = new Request($data);
-
-        $HashCustom = new HashController();
-        $rawPass = $HashCustom->hashController($request)->getData();
-
-        $finalPassword = $rawPass->encrypt;
-
         $data2 = [
-            'type' => 'deskripsi',
+            'type' => 'enkripsi',
             'password' => $finalPassword,
             'my_code' => 'secretAPI%',
         ];
@@ -227,6 +226,8 @@ class TokenController extends Controller
 
         $rawPass2 = $HashCustom->hashController($request2)->getData();
         $finalUnreal = $rawPass2->encrypt;
+        dd($finalUnreal);
+
 
         // dd($finalUnreal);
         // dd('Pasword yang dienkrip : '.$finalPassword.' ; Ini Password tidak enkrip : '. $finalUnreal);
